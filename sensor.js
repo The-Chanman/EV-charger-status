@@ -9,20 +9,20 @@ const nomad = new Nomad()
 
 // Particle Device Setup
 // Atomic node 2
-const deviceID =  "340050000851353531343431"
+const deviceID =  "250044000447343138333038"
 
 let instance = null
 let lastPub = null
 let token
 
 const defaultPublishData = { 
-  sensor: {
+  charging_station: {
     data: "",
     time: "",
-    description: "The type of animal in region 2"
+    description: "The status of EV charger 2"
   }
 }
-const timeBetween = 5 * 60 * 1000 //5 minutes
+const timeBetween = 30 * 1000 //30 seconds 
 const timeThreshold = 4 * 60 * 60 * 1000 // 4 hours
 
 class DataMaintainer {
@@ -72,7 +72,7 @@ particle.login(credentials)
   })
   .then((n) => {
     instance = n
-    return instance.publishRoot('hello this atomic node 1 of supply chain demo')
+    return instance.publishRoot('hello this atomic node 1 of EV Charging station 2')
   })
   .then(() => {
     //declaring last publish date
