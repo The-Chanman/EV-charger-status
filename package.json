@@ -1,22 +1,22 @@
 {
-  "name": "Supply-chain-atomic-node-1",
-  "nomadName": "Supply-chain-atomic-node-1",
+  "name": "EV Charging Station 1",
+  "nomadName": "EV-Charging-Station-1",
   "version": "1.0.0",
-  "description": "Atmoic node one for the supply chain demo",
+  "description": "Status of Charging Station 1",
   "main": "sensor.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/The-Chanman/nomad-supply-chain-demo/"
+    "url": "git+https://github.com/The-Chanman/EV-charger-status"
   },
   "author": "Eric Chan <echan@ideo.com>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/The-Chanman/nomad-supply-chain-demo/issues"
+    "url": "https://github.com/The-Chanman/EV-charger-status/issues"
   },
-  "homepage": "https://github.com/The-Chanman/nomad-supply-chain-demo#readme",
+  "homepage": "https://github.com/The-Chanman/EV-charger-status#readme",
   "dependencies": {
     "moment": "^2.16.0",
     "nomad-stream": "0.0.6",

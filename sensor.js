@@ -72,7 +72,7 @@ particle.login(credentials)
   })
   .then((n) => {
     instance = n
-    return instance.publishRoot('hello this atomic node 1 of supply chain demo')
+    return instance.publishRoot('hello this atomic node 1 of EV Charger')
   })
   .then(() => {
     //declaring last publish date
