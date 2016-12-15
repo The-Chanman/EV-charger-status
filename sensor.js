@@ -10,30 +10,34 @@ const nomad = new Nomad()
 const client = require('twilio')(credentials.accountSid, credentials.authToken)
 
 // device atomic node ids
-const subscriptions = ['QmbBw8wZ379ksyAETJMFU2BptByeQoGPp1UrBPJdRN2dRc', 'QmcZt6n1KVPC4exrHtDW1R6U7MacGD92MQCUEpYVDq1GXL']
+const subscriptions = ['QmQHRpzmBAPMrmmApUYjg1NUTcZtbiSqc5PA7wsVNv6Mp6', 'QmXe1Lo3ghMNoVrxKHQkBG6cdR4TJUSmdNAZa9paqnqDGi']
 
 let instance
 let lastPub
 let notificationBody
+let lastStatus1 = false
+let lastStatus2 = false
 
-const frequency = 5 * 60 * 1000 // 5 minutes 
+const frequency = 60 * 1000 // 30 seconds 
 const timeThreshold = 4 * 60 * 60 * 1000 // 4 hours
 const toNumber = phoneNumbers.toNumber
 const fromNumber = phoneNumbers.fromNumber
 
 const defaultPublishData = { 
   [subscriptions[0]]: {
-    sensor: {
+    charging_station: {
       data: '',
       time: '',
-      description: '' 
+      description: '',
+      price: 5
     }
   },
   [subscriptions[1]]: {
-    sensor: {
+    charging_station: {
       data: '',
       time: '',
-      description: '' 
+      description: '',
+      price: 4
     }
   }
 }
@@ -62,7 +66,7 @@ class DataMaintainer {
     return this.data
   }
   isAllFilled(){
-    return this.data[subscriptions[0]]['sensor']["data"] && this.data[subscriptions[0]]['sensor']["time"] && this.data[subscriptions[1]]['sensor']["data"] && this.data[subscriptions[1]]['sensor']["time"]
+    return this.data[subscriptions[0]]['charging_station']["data"] && this.data[subscriptions[0]]['charging_station']["time"] && this.data[subscriptions[1]]['charging_station']["data"] && this.data[subscriptions[1]]['charging_station']["time"]
   }
   clear(){
     this.data = defaultPublishData
@@ -82,7 +86,7 @@ let dataManager = new DataMaintainer()
 nomad.prepareToPublish()
   .then((n) => {
     instance = n
-    return instance.publishRoot('Starting up supply chain demo composite')
+    return instance.publishRoot('Starting up EV charging station composite')
   })
   .then(() => {
     lastPub = getTime()
@@ -96,30 +100,58 @@ nomad.prepareToPublish()
       catch(err){
         console.log("DataMaintainer failed with error of " + err)
       }
+      console.log(dataManager.toString())
       let currentTime = getTime()
       let timeSince = currentTime - lastPub
       if (timeSince >= frequency){
         console.log('===================================> timeSince >= timeBetween')
         let currentRecord = dataManager.getAll()
-        let sensorOneData = currentRecord[Object.keys(currentRecord)[0]]['sensor']["data"]
-        let sensorTwoData = currentRecord[Object.keys(currentRecord)[1]]['sensor']["data"]
-        if (sensorOneData == 'Active' && sensorTwoData == 'Fish'){
+        let sensorOneData = currentRecord[Object.keys(currentRecord)[0]]['charging_station']["data"]
+        let sensorTwoData = currentRecord[Object.keys(currentRecord)[1]]['charging_station']["data"]
+        if ((sensorOneData == "unoccupied" && sensorOneData != lastStatus1) || (sensorTwoData == "unoccupied" && sensorTwoData != lastStatus2 )){
           console.log("***************************************************************************************")
-          console.log(`we are now going to notify relevant parties since there is an Active Fish`)
+          console.log(`we are now going to notify relevant parties since there is an unoccupied `)
           console.log("***************************************************************************************")
-          notificationBody = `THERE IS AN ACTIVE FISH. TAKE IMMEDIATE PRECAUTIONARY MEASURES`
-          client.messages.create({
-            to: toNumber,
-            from: fromNumber,
-            body: notificationBody,
-          }, function (err, message) {
-            console.log(err)
-            console.log(message)
-          })
-          instance.publish("There is an active fish! Look! (°ロ°)-☞  " + dataManager.toString())
+
+          if(sensorOneData == "unoccupied" && sensorTwoData == "unoccupied"){
+            notificationBody = `EV Charger 1 and 2 are unoccupied. Prices are ${currentRecord[Object.keys(currentRecord)[0]]['charging_station']["price"]} and ${currentRecord[Object.keys(currentRecord)[1]]['charging_station']["price"]} respectively`
+            client.messages.create({
+              to: toNumber,
+              from: fromNumber,
+              body: notificationBody,
+            }, function (err, message) {
+              console.log(err)
+              console.log(message)
+            })
+          } else if (sensorOneData == "unoccupied"){
+            notificationBody = `EV Charger 1 is unoccupied and the price is ${currentRecord[Object.keys(currentRecord)[0]]['charging_station']["price"]}`
+            client.messages.create({
+              to: toNumber,
+              from: fromNumber,
+              body: notificationBody,
+            }, function (err, message) {
+              console.log(err)
+              console.log(message)
+            })
+
+          } else if (sensorTwoData == "unoccupied"){
+            notificationBody = `EV Charger 2 is unoccupied and the price is ${currentRecord[Object.keys(currentRecord)[1]]['charging_station']["price"]}`
+            client.messages.create({
+              to: toNumber,
+              from: fromNumber,
+              body: notificationBody,
+            }, function (err, message) {
+              console.log(err)
+              console.log(message)
+            })
+          }
+
+          instance.publish(dataManager.toString())
             .catch(err => console.log(`Error in publishing timeSince>=timeBetween positive state: ${JSON.stringify(err)}`))
           dataManager.clear()
           lastPub = currentTime
+          lastStatus1 = sensorOneData
+          lastStatus2 = sensorTwoData
         } else if (dataManager.isAllFilled()) {
           instance.publish(dataManager.toString())
             .catch(err => console.log(`Error in publishing timeSince>=timeBetween negative state: ${JSON.stringify(err)}`))
