@@ -22,7 +22,7 @@ const defaultPublishData = {
     description: "The status of EV charger 2"
   }
 }
-const timeBetween = 30 * 1000 //30 seconds 
+const timeBetween = 2 * 60 * 1000 //2 minutes
 const timeThreshold = 4 * 60 * 60 * 1000 // 4 hours
 
 class DataMaintainer {
