@@ -17,6 +17,8 @@ let lastPub
 let notificationBody
 let lastStatus1 = false
 let lastStatus2 = false
+let timeCharging1 
+let timeCharging2
 
 const frequency =  2 * 60 * 1000 // 2 minutes  
 const timeThreshold = 4 * 60 * 60 * 1000 // 4 hours
@@ -108,12 +110,35 @@ nomad.prepareToPublish()
         let currentRecord = dataManager.getAll()
         let sensorOneData = currentRecord[Object.keys(currentRecord)[0]]['charging_station']["data"]
         let sensorTwoData = currentRecord[Object.keys(currentRecord)[1]]['charging_station']["data"]
+        // if now occupied in lot 1 start timing
+        if ((sensorOneData == "occupied" && sensorOneData != lastStatus1)){
+          timeCharging1 = getTime()
+        }
+        // if now occupied in lot 2 start timing
+        if ((sensorTwoData == "occupied" && sensorTwoData != lastStatus2 )){
+          timeCharging2 = getTime()
+        }
+        try{
+          let timeSinceCharging1 = currentTime - timeCharging1
+          let timeSinceCharging2 = currentTime - timeCharging2
+          dataManager.data[subscriptions[0]]['charging_station'].timeCharging = timeSinceCharging1
+          dataManager.data[subscriptions[1]]['charging_station'].timeCharging = timeSinceCharging2
+        }
+        catch(err){
+          console.log("charging time failed with error of " + err)
+        }
+        let timeSinceCharging1 = currentTime - timeCharging1
+        let timeSinceCharging2 = currentTime - timeCharging2
+        dataManager.data[subscriptions[0]]['charging_station'].timeCharging = timeSinceCharging1
+        dataManager.data[subscriptions[1]]['charging_station'].timeCharging = timeSinceCharging2
         if ((sensorOneData == "unoccupied" && sensorOneData != lastStatus1) || (sensorTwoData == "unoccupied" && sensorTwoData != lastStatus2 )){
           console.log("***************************************************************************************")
           console.log(`we are now going to notify relevant parties since there is an unoccupied `)
           console.log("***************************************************************************************")
 
           if(sensorOneData == "unoccupied" && sensorTwoData == "unoccupied"){
+            delete dataManager.data[subscriptions[0]]['charging_station'].timeCharging 
+            delete dataManager.data[subscriptions[1]]['charging_station'].timeCharging 
             notificationBody = `EV Charger 1 and 2 are unoccupied. Prices are ${currentRecord[Object.keys(currentRecord)[0]]['charging_station']["price"]} and ${currentRecord[Object.keys(currentRecord)[1]]['charging_station']["price"]} respectively`
             client.messages.create({
               to: toNumber,
@@ -124,6 +149,7 @@ nomad.prepareToPublish()
               console.log(message)
             })
           } else if (sensorOneData == "unoccupied"){
+            delete dataManager.data[subscriptions[0]]['charging_station'].timeCharging 
             notificationBody = `EV Charger 1 is unoccupied and the price is ${currentRecord[Object.keys(currentRecord)[0]]['charging_station']["price"]}`
             client.messages.create({
               to: toNumber,
@@ -135,6 +161,7 @@ nomad.prepareToPublish()
             })
 
           } else if (sensorTwoData == "unoccupied"){
+            delete dataManager.data[subscriptions[1]]['charging_station'].timeCharging 
             notificationBody = `EV Charger 2 is unoccupied and the price is ${currentRecord[Object.keys(currentRecord)[1]]['charging_station']["price"]}`
             client.messages.create({
               to: toNumber,
