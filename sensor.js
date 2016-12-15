@@ -10,7 +10,7 @@ const nomad = new Nomad()
 const client = require('twilio')(credentials.accountSid, credentials.authToken)
 
 // device atomic node ids
-const subscriptions = ['QmQHRpzmBAPMrmmApUYjg1NUTcZtbiSqc5PA7wsVNv6Mp6', 'QmXe1Lo3ghMNoVrxKHQkBG6cdR4TJUSmdNAZa9paqnqDGi']
+const subscriptions = ['QmW9dVfYoGdXDdhyQqh6W5M5mAUbfhTpunwoHMjXfj2J6Z', 'QmafDr5bkK8SeSfTQnCG7e79zNSpCLQq2wteZ6fAvd8V7K']
 
 let instance
 let lastPub
