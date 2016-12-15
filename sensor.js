@@ -18,7 +18,7 @@ let notificationBody
 let lastStatus1 = false
 let lastStatus2 = false
 
-const frequency = 60 * 1000 // 30 seconds 
+const frequency =  2 * 60 * 1000 // 2 minutes  
 const timeThreshold = 4 * 60 * 60 * 1000 // 4 hours
 const toNumber = phoneNumbers.toNumber
 const fromNumber = phoneNumbers.fromNumber
