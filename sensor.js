@@ -105,32 +105,33 @@ nomad.prepareToPublish()
       console.log(dataManager.toString())
       let currentTime = getTime()
       let timeSince = currentTime - lastPub
+      let currentRecord = dataManager.getAll()
+      let sensorOneData = currentRecord[Object.keys(currentRecord)[0]]['charging_station']["data"]
+      let sensorTwoData = currentRecord[Object.keys(currentRecord)[1]]['charging_station']["data"]
+      // if now occupied in lot 1 start timing
+      if ((sensorOneData == "occupied" && sensorOneData != lastStatus1)){
+        timeCharging1 = getTime()
+        console.log("set time 1" + timeCharging1)
+      }
+      // if now occupied in lot 2 start timing
+      if ((sensorTwoData == "occupied" && sensorTwoData != lastStatus2 )){
+        timeCharging2 = getTime()
+          console.log("set time 2"+ timeCharging2)
+      }
       if (timeSince >= frequency){
         console.log('===================================> timeSince >= timeBetween')
-        let currentRecord = dataManager.getAll()
-        let sensorOneData = currentRecord[Object.keys(currentRecord)[0]]['charging_station']["data"]
-        let sensorTwoData = currentRecord[Object.keys(currentRecord)[1]]['charging_station']["data"]
-        // if now occupied in lot 1 start timing
-        if ((sensorOneData == "occupied" && sensorOneData != lastStatus1)){
-          timeCharging1 = getTime()
-        }
-        // if now occupied in lot 2 start timing
-        if ((sensorTwoData == "occupied" && sensorTwoData != lastStatus2 )){
-          timeCharging2 = getTime()
-        }
+
         try{
           let timeSinceCharging1 = currentTime - timeCharging1
           let timeSinceCharging2 = currentTime - timeCharging2
-          dataManager.data[subscriptions[0]]['charging_station'].timeCharging = timeSinceCharging1
-          dataManager.data[subscriptions[1]]['charging_station'].timeCharging = timeSinceCharging2
+          dataManager.data[subscriptions[0]]['charging_station'].timeCharging = (timeSinceCharging1/60000) + " minutes"
+          dataManager.data[subscriptions[1]]['charging_station'].timeCharging = (timeSinceCharging2/60000) + " minutes"
+          console.log("time 2 " + timeSinceCharging2)
+          console.log("time 1 " + timeSinceCharging1)
         }
         catch(err){
           console.log("charging time failed with error of " + err)
         }
-        let timeSinceCharging1 = currentTime - timeCharging1
-        let timeSinceCharging2 = currentTime - timeCharging2
-        dataManager.data[subscriptions[0]]['charging_station'].timeCharging = timeSinceCharging1
-        dataManager.data[subscriptions[1]]['charging_station'].timeCharging = timeSinceCharging2
         if ((sensorOneData == "unoccupied" && sensorOneData != lastStatus1) || (sensorTwoData == "unoccupied" && sensorTwoData != lastStatus2 )){
           console.log("***************************************************************************************")
           console.log(`we are now going to notify relevant parties since there is an unoccupied `)
@@ -173,17 +174,18 @@ nomad.prepareToPublish()
             })
           }
 
+          console.log(dataManager.toString())
           instance.publish(dataManager.toString())
             .catch(err => console.log(`Error in publishing timeSince>=timeBetween positive state: ${JSON.stringify(err)}`))
           dataManager.clear()
           lastPub = currentTime
-          lastStatus1 = sensorOneData
-          lastStatus2 = sensorTwoData
         } else if (dataManager.isAllFilled()) {
           instance.publish(dataManager.toString())
             .catch(err => console.log(`Error in publishing timeSince>=timeBetween negative state: ${JSON.stringify(err)}`))
         }
       }
+      lastStatus1 = sensorOneData
+      lastStatus2 = sensorTwoData
       if (timeSince >= timeThreshold){
         // let them know the node is still online
        console.log("===================================>   timeSince >= timeThreshold")
