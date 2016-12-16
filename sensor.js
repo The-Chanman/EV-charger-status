@@ -160,7 +160,6 @@ nomad.prepareToPublish()
               console.log(err)
               console.log(message)
             })
-
           } else if (sensorTwoData == "unoccupied"){
             delete dataManager.data[subscriptions[1]]['charging_station'].timeCharging 
             notificationBody = `EV Charger 2 is unoccupied and the price is ${currentRecord[Object.keys(currentRecord)[1]]['charging_station']["price"]}`
@@ -180,6 +179,11 @@ nomad.prepareToPublish()
           dataManager.clear()
           lastPub = currentTime
         } else if (dataManager.isAllFilled()) {
+          if (sensorOneData == "unoccupied"){
+            delete dataManager.data[subscriptions[0]]['charging_station'].timeCharging
+          } else if (sensorTwoData == "unoccupied"){
+            delete dataManager.data[subscriptions[1]]['charging_station'].timeCharging 
+          }
           instance.publish(dataManager.toString())
             .catch(err => console.log(`Error in publishing timeSince>=timeBetween negative state: ${JSON.stringify(err)}`))
         }
